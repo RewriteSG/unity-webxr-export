@@ -5,8 +5,8 @@
   "unity": "2020.3",
   "unityRelease": "11f1",
   "description": "WebXR interactions components and samples for WebXR Export",
-  "changelogUrl": "https://github.com/De-Panther/unity-webxr-export/blob/master/Packages/webxr-interactions/CHANGELOG.md",
-  "documentationUrl": "https://github.com/De-Panther/unity-webxr-export/tree/master/Documentation",
+  "changelogUrl": "https://github.com/RewriteSG/unity-webxr-export/blob/master/Packages/webxr-interactions/CHANGELOG.md",
+  "documentationUrl": "https://github.com/RewriteSG/unity-webxr-export/tree/master/Documentation",
   "keywords": [
     "webxr",
     "xr",
