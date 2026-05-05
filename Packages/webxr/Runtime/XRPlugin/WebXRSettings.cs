@@ -21,7 +21,8 @@ namespace WebXR
     public enum ExtraFeatureTypes
     {
       hit_test = 1,
-      hand_tracking = 2
+      hand_tracking = 2,
+      image_tracking = 4  // add this
     }
 
     [Header("VR Settings")]
@@ -41,7 +42,7 @@ Default is the recommended resolution. Can be different than native resolution."
     public bool UseNativeResolution = false;
     [Tooltip(@"If ""Use Framebuffer Scale Factor"" is true, and not using native resolution, what should be the scale factor?
 Default is 1.0, the recommended resolution.")]
-    [Range(0.2f,2.0f)]
+    [Range(0.2f, 2.0f)]
     public float FramebufferScaleFactor = 1.0f;
     [Tooltip(@"Should WebXRManager be created on start or manually by the developer.")]
     public bool AutoLoadWebXRManager = true;
@@ -58,7 +59,7 @@ If XRDisplaySubsystem is disabled use the WebXRCamera component.")]
 
     string EnumToString<T>(T value) where T : Enum
     {
-      return value.ToString().Replace('_','-');
+      return value.ToString().Replace('_', '-');
     }
 
     string FlagsToString<T>(T value) where T : Enum
@@ -76,7 +77,7 @@ If XRDisplaySubsystem is disabled use the WebXRCamera component.")]
           result += "\"" + flag + "\",";
         }
       }
-      result = result.Remove(result.Length - 1).Replace('_','-');
+      result = result.Remove(result.Length - 1).Replace('_', '-');
       result += "]";
       return result;
     }
