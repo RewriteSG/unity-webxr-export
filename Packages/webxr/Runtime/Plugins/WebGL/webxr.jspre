@@ -346,6 +346,12 @@ void main()
         this.onSessionVisibilityEvent = null;
         this.BrowserObject = null;
         this.JSEventsObject = null;
+        this.imagetrack = {          // ← add this
+          hasBitmap: false,
+          itBitmaps: [],
+          lastPose: new Float32Array(7),
+          isTracked: false
+        };
         this.init();
       }
     
@@ -409,16 +415,22 @@ void main()
           thisXRMananger.ctx.clear(thisXRMananger.ctx.COLOR_BUFFER_BIT | thisXRMananger.ctx.DEPTH_BUFFER_BIT);
         }
         window.requestAnimationFrame( tempRender );
-        navigator.xr.requestSession('immersive-ar', {
+          // Build session init — inject trackedImages if image tracking is ready
+        var sessionInit = {
           requiredFeatures: thisXRMananger.gameModule.WebXR.Settings.ARRequiredReferenceSpace,
           optionalFeatures: thisXRMananger.gameModule.WebXR.Settings.AROptionalFeatures
-        }).then(function (session) {
-          session.isImmersive = true;
-          session.isInSession = true;
-          session.isAR = true;
-          Module.WebXR.xrSession = session;
-          thisXRMananger.xrSession = session;
-          thisXRMananger.onSessionStarted(session);
+        };
+        if (thisXRMananger.imagetrack && thisXRMananger.imagetrack.hasBitmap) {
+          sessionInit.trackedImages = thisXRMananger.imagetrack.itBitmaps;
+        }
+        navigator.xr.requestSession('immersive-ar', sessionInit)
+        .then(function (session) {
+        session.isImmersive = true;
+        session.isInSession = true;
+        session.isAR = true;
+        Module.WebXR.xrSession = session;
+        thisXRMananger.xrSession = session;
+        thisXRMananger.onSessionStarted(session);
         }).catch(function (error) {
           if (thisXRMananger.BrowserObject.resumeAsyncCallbacks) {
             thisXRMananger.BrowserObject.resumeAsyncCallbacks();
@@ -1044,7 +1056,8 @@ void main()
         });
       }
     
-      XRManager.prototype.animate = function (frame) {
+      XRManager.prototype.animate = function (frame)
+      {
         var session = frame.session;
         if (!session) {
           return this.didNotifyUnity;
@@ -1129,7 +1142,35 @@ void main()
             Module.HEAPF32[xrData.viewerHitTestPose.availableIndex] = 0; // XRHitPoseData.available
           }
         }
-    
+        // ─── Image Tracking ───────────────────────────────────────────────────────
+        if (session.isAR && this.imagetrack && this.imagetrack.hasBitmap) {
+          var imageTrackingResults = frame.getImageTrackingResults();
+          var imageFound = false;
+          for (var it = 0; it < imageTrackingResults.length; it++) {
+            var itResult = imageTrackingResults[it];
+            if (itResult.trackingState === "tracked") {
+              var itPose = frame.getPose(itResult.imageSpace, session.refSpace);
+              if (itPose) {
+                var itT = itPose.transform.position;
+                var itR = itPose.transform.orientation;
+                this.imagetrack.lastPose[0] =  itT.x;
+                this.imagetrack.lastPose[1] =  itT.y;
+                this.imagetrack.lastPose[2] = -itT.z;
+                this.imagetrack.lastPose[3] = -itR.x;
+                this.imagetrack.lastPose[4] = -itR.y;
+                this.imagetrack.lastPose[5] =  itR.z;
+                this.imagetrack.lastPose[6] =  itR.w;
+                this.imagetrack.isTracked = true;
+                imageFound = true;
+                break;
+              }
+            }
+          }
+          if (!imageFound) {
+            this.imagetrack.isTracked = false;
+          }
+        }
+        // ─── End Image Tracking ───────────────────────────────────────────────────
         if (xrData.controllerA.updatedProfiles == 1 || xrData.controllerB.updatedProfiles == 1)
         {
           var inputProfiles = {};
